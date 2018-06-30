@@ -12,18 +12,18 @@ import (
 // intermediate instances of these types (and/or built-in types like int, string, etc..)
 // and then perform an unmarshal operation into user provided target type.
 
-// List is a representation of a python list
-type List struct {
+// list is a representation of a python list
+type list struct {
 	vals []interface{}
 }
 
-// NewList returns a new List instance
-func NewList() *List {
-	return &List{}
+// newList returns a new List instance
+func newList() *list {
+	return &list{}
 }
 
-// Parse decodes a cereal format data defintion into the List instance
-func (l *List) Parse(b *buffer) error {
+// parse decodes a cereal format data defintion into the List instance
+func (l *list) parse(b *buffer) error {
 
 	// fmt.Println("Parsing *List data")
 
@@ -40,17 +40,15 @@ func (l *List) Parse(b *buffer) error {
 			return fmt.Errorf("error parsing List value: %s", err)
 		}
 
-		// fmt.Printf("  setting List[%d] = %v\n", i, val)
 		l.vals[i] = val
 	}
 
-	// fmt.Printf("  List = %#v\n", l)
 	return nil
 }
 
-// Unmarshal takes values stored in List and copies to Value. Value must be
+// unmarshal takes values stored in List and copies to Value. Value must be
 // setable and be a kind of slice.
-func (l *List) Unmarshal(rv reflect.Value) error {
+func (l *list) unmarshal(rv reflect.Value) error {
 
 	if rv.Kind() != reflect.Slice {
 		return fmt.Errorf("cannot unmarshal List into non-slice type %s", rv.Type())
@@ -59,8 +57,6 @@ func (l *List) Unmarshal(rv reflect.Value) error {
 	elemType := rv.Type().Elem()
 
 	for _, v := range l.vals {
-		// fmt.Printf("  assigning List[%d] = %v\n", i, v)
-
 		newVal, err := unmarshalType(elemType, v)
 		if err != nil {
 			return err
@@ -71,44 +67,32 @@ func (l *List) Unmarshal(rv reflect.Value) error {
 	return nil
 }
 
-// Set is a representation of a python set object. It is functionally
+// tuple is a representaion of a python tuple. It is functionally
 // identical to List but stored differently by cerealizer.
-type Set struct {
-	List
+type tuple struct {
+	list
 }
 
-// NewSet returns a new Set instance
-func NewSet() *Set {
-	return &Set{}
+// newTuple returns a new Tuple instance
+func newTuple() *tuple {
+	return &tuple{}
 }
 
-// Tuple is a representaion of a python tuple. It is functionally
-// identical to List but stored differently by cerealizer.
-type Tuple struct {
-	List
-}
-
-// NewTuple returns a new Tuple instance
-func NewTuple() *Tuple {
-	return &Tuple{}
-}
-
-// Dict is a representation of a python dictionary
-type Dict struct {
+// dict is a representation of a python dictionary
+type dict struct {
 	vals map[interface{}]interface{}
 }
 
-// NewDict returns a new Dict instance
-func NewDict() *Dict {
-	var d Dict
+// newDict returns a new Dict instance
+func newDict() *dict {
+	var d dict
 
 	d.vals = make(map[interface{}]interface{})
 	return &d
 }
 
-// Parse decodes a cereal format data defintion into the Dict instance
-func (d *Dict) Parse(b *buffer) error {
-	// fmt.Println("Parsing *Dict data")
+// parse decodes a cereal format data defintion into the Dict instance
+func (d *dict) parse(b *buffer) error {
 
 	count, err := b.readLineInt()
 	if err != nil {
@@ -128,17 +112,15 @@ func (d *Dict) Parse(b *buffer) error {
 			return fmt.Errorf("error parsing Dict key: %s", err)
 		}
 
-		// fmt.Printf("  setting Dict[%v] = %v\n", key, val)
 		d.vals[key] = val
 	}
 
-	// fmt.Printf("  Dict = %#v\n", d)
 	return nil
 }
 
-// Unmarshal takes values stored in Dict and copies to Value. Value must be
+// unmarshal takes values stored in Dict and copies to Value. Value must be
 // setable and be a kind of map.
-func (d *Dict) Unmarshal(rv reflect.Value) error {
+func (d *dict) unmarshal(rv reflect.Value) error {
 	if rv.Kind() != reflect.Map {
 		return fmt.Errorf("cannot unmarshal Dict into non-map type %s", rv.Type())
 	}
@@ -148,8 +130,6 @@ func (d *Dict) Unmarshal(rv reflect.Value) error {
 	rv.Set(reflect.MakeMap(rv.Type()))
 
 	for k, v := range d.vals {
-		// fmt.Printf("  assigning Dict[%v] = %v\n", k, v)
-
 		newVal, err := unmarshalType(elemType, v)
 		if err != nil {
 			return err
@@ -166,15 +146,15 @@ func (d *Dict) Unmarshal(rv reflect.Value) error {
 	return nil
 }
 
-// Obj is a representation of a generic python object/class
-type Obj struct {
+// obj is a representation of a generic python object/class
+type obj struct {
 	name  string
 	attrs map[string]interface{}
 }
 
-// NewObj returns a new Obj instance
-func NewObj(s string) *Obj {
-	var o Obj
+// newObj returns a new Obj instance
+func newObj(s string) *obj {
+	var o obj
 
 	o.name = s
 	o.attrs = make(map[string]interface{})
@@ -182,21 +162,19 @@ func NewObj(s string) *Obj {
 	return &o
 }
 
-// Parse decodes a cereal format data defintion into the Obj instance
-func (o *Obj) Parse(b *buffer) error {
-	// fmt.Println("Parsing *Obj data")
-
+// parse decodes a cereal format data defintion into the Obj instance
+func (o *obj) parse(b *buffer) error {
 	val, err := parseElem(b)
 	if err != nil {
 		return fmt.Errorf("error parsing Obj value: %s", err)
 	}
 
-	dict, ok := val.(*Dict)
+	d, ok := val.(*dict)
 	if !ok {
 		return fmt.Errorf("illegal reference for Obj data: must be type *Dict")
 	}
 
-	for k, v := range dict.vals {
+	for k, v := range d.vals {
 		str, ok := k.(string)
 		if !ok {
 			return fmt.Errorf("cannot assign non-string key '%v' to Obj attribute name", k)
@@ -208,10 +186,10 @@ func (o *Obj) Parse(b *buffer) error {
 	return nil
 }
 
-// Unmarshal takes values stored in Dict and copies to Value. Value must be
-// setable and be a kind of struct. Unmarshal will use field tags with the
+// unmarshal takes values stored in Dict and copies to Value. Value must be
+// setable and be a kind of struct. unmarshal will use field tags with the
 // key 'cereal' to map between python attributes and struct fields.
-func (o *Obj) Unmarshal(rv reflect.Value) error {
+func (o *obj) unmarshal(rv reflect.Value) error {
 
 	if rv.Kind() != reflect.Struct {
 		return fmt.Errorf("cannot unmarshal Obj into non-struct type %s", rv.Type())
@@ -243,18 +221,16 @@ func (o *Obj) Unmarshal(rv reflect.Value) error {
 	for key, value := range o.attrs {
 		idx, ok := fieldMap[key]
 		if !ok {
-			// fmt.Printf("skipping attribute %s: no matching field\n", key)
 			continue
 		}
 
 		if !rv.Field(idx).CanSet() {
-			// fmt.Printf("skipping non-settable (unexported?) field %s\n", key)
+			// XXX: Should we report error or ignore? Currently ignore
 			continue
 		}
-		// fmt.Printf("Setting field %s = %v\n", rt.Field(idx).Name, value)
 
-		if parser, ok := value.(Parser); ok {
-			err := parser.Unmarshal(rv.Field(idx))
+		if p, ok := value.(parser); ok {
+			err := p.unmarshal(rv.Field(idx))
 			if err != nil {
 				return err
 			}

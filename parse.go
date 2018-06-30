@@ -11,13 +11,13 @@ import (
 // Cereal data format can contain references to previously defined objects.
 // To allow the parser to handle thes refs properly, we track all the
 // objects in a global slice.
-var objs []Parser
+var objs []parser
 
-// Parser is a type which can be parsed from cereal data format and also
+// parser is a type which can be parsed from cereal data format and also
 // unmershaled into a user provided value.
-type Parser interface {
-	Parse(*buffer) error
-	Unmarshal(reflect.Value) error
+type parser interface {
+	parse(*buffer) error
+	unmarshal(reflect.Value) error
 }
 
 // parseElem reads the next data element from the cereal format buffer and
@@ -91,10 +91,10 @@ func parseElem(buf *buffer) (interface{}, error) {
 
 }
 
-// Parse decodes the cereal format data into single root object, perhaps
+// parse decodes the cereal format data into single root object, perhaps
 // containing additional intermediate objects (eg. Obj, List, Dict, etc..)
 // and/or built-in native types (eg. int, float64, string).
-func Parse(data []byte) (interface{}, error) {
+func parse(data []byte) (interface{}, error) {
 
 	buf := newBuffer(data)
 
@@ -114,7 +114,7 @@ func Parse(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	objs = make([]Parser, count)
+	objs = make([]parser, count)
 
 	// Count the number of tuples as we have to read their data
 	// in this section and ensure we do not attempt to read again later
@@ -128,43 +128,32 @@ func Parse(data []byte) (interface{}, error) {
 
 		switch objType {
 		case "dict":
-			objs[i] = NewDict()
+			objs[i] = newDict()
 
-		case "list":
-			objs[i] = NewList()
-
-		case "set":
-			objs[i] = NewSet()
+		case "list", "set":
+			objs[i] = newList()
 
 		case "tuple":
-			objs[i] = NewTuple()
+			objs[i] = newTuple()
 			numTuples++
 
-			err = objs[i].Parse(buf)
+			err = objs[i].parse(buf)
 			if err != nil {
 				return nil, fmt.Errorf("error parsing tuple data (object #%d): %s", i, err)
 			}
 
 		default:
-			objs[i] = NewObj(objType)
+			objs[i] = newObj(objType)
 		}
 	}
 
-	// fmt.Printf("objs: %#v\n", objs)
-
 	// Read in data definitions for all non-tuple objects
 	for i := 0; i < count-numTuples; i++ {
-		err := objs[i].Parse(buf)
+		err := objs[i].parse(buf)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing data for object #%d: %s", i, err)
 		}
 	}
-
-	// fmt.Printf("objs: ")
-	// for _, o := range objs {
-	// 	fmt.Printf(" %#v", o)
-	// }
-	// fmt.Println()
 
 	// Now read reference for root object
 	return parseElem(buf)
@@ -181,12 +170,10 @@ func Unmarshal(data []byte, v interface{}) error {
 	}
 
 	// Parse the cereal data into intermediate tree of objects
-	root, err := Parse(data)
+	root, err := parse(data)
 	if err != nil {
 		return err
 	}
-
-	// fmt.Printf("root: %#v\n", root)
 
 	val, err := unmarshalType(rv.Elem().Type(), root)
 	if err != nil {
@@ -204,11 +191,9 @@ func unmarshalType(rt reflect.Type, v interface{}) (reflect.Value, error) {
 	var newVal reflect.Value
 
 	// Dict, Obj, List, etc..
-	if parser, ok := v.(Parser); ok {
-		// fmt.Printf("Calling parser method for %s", reflect.ValueOf(v).Type())
+	if p, ok := v.(parser); ok {
 		newVal = reflect.New(rt).Elem()
-
-		err := parser.Unmarshal(newVal)
+		err := p.unmarshal(newVal)
 
 		return newVal, err
 
