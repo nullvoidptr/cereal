@@ -1,7 +1,5 @@
 # Cereal #
 
-## About ##
-
 Package cereal implements access to python cerealizer archives.
 
 Cerealizer is a "secure pickle-like" python module that serializes python objects
@@ -33,6 +31,7 @@ type SampleData struct {
     String string
     Float float32
 }
+
 func main() {
 
     buf, _ := ioutil.ReadFile("filename")
