@@ -1,3 +1,5 @@
+// Copyright (c) 2018 James Bowen
+
 /*
 Package cereal implements access to python cerealizer archives.
 

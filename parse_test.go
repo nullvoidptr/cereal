@@ -1,3 +1,5 @@
+// Copyright (c) 2018 James Bowen
+
 //go:generate python testdata/generate_data.py
 
 package cereal

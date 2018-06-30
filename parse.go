@@ -1,3 +1,5 @@
+// Copyright (c) 2018 James Bowen
+
 package cereal
 
 import (
