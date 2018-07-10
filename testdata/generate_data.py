@@ -27,6 +27,7 @@ class test01_class(object):
         self.field_int = 12345
         self.field_str = "one two three four five"
         self.field_float = -1.234e9
+        self.field_bool = True
 
 class test02_class(object):
     '''class with list and dict values'''
@@ -39,7 +40,8 @@ class test02_class(object):
         #self.field_dict2 = {"int": 1234, "float": 123.45, "string": "Test String"}
         self.field_tuple = (1, 2, 3, 4)
         #self.field_tuple2 = ((5, 6), 7, ((8,9), 10), 11)
-
+        self.field_bool = False
+        
 class test03_class(object):
     '''class with multiple complex types including other objects'''
 

@@ -16,6 +16,7 @@ type test01 struct {
 	Int   int     `cereal:"field_int"`
 	Str   string  `cereal:"field_str"`
 	Float float64 `cereal:"field_float"`
+	Bool  bool    `cereal:"field_bool"`
 }
 
 type test01a struct {
@@ -32,6 +33,7 @@ type test02 struct {
 	ListString []string       `cereal:"field_list_string"`
 	DictStrInt map[string]int `cereal:"field_dict"`
 	TupleInt   []int          `cereal:"field_tuple"`
+	Bool       bool           `cereal:"field_bool"`
 }
 
 type test03 struct {
@@ -47,6 +49,7 @@ func Test01(t *testing.T) {
 		Int:   12345,
 		Str:   "one two three four five",
 		Float: -1.234E9,
+		Bool:  true,
 	}
 
 	data, err := ioutil.ReadFile("testdata/test01.dat")
@@ -77,6 +80,7 @@ func Test02(t *testing.T) {
 		ListString: []string{"aaaa", "bbbb", "cccc", "dddd"},
 		DictStrInt: map[string]int{"key1": 1234, "key2": 5678, "key3": 9012},
 		TupleInt:   []int{1, 2, 3, 4},
+		Bool:       false,
 	}
 
 	data, err := ioutil.ReadFile("testdata/test02.dat")
@@ -106,6 +110,7 @@ func Test03(t *testing.T) {
 			Int:   12345,
 			Str:   "one two three four five",
 			Float: -1.234E9,
+			Bool:  true,
 		},
 		Obj2: test02{
 			ListInt:    []int{1, 2, 3, 4, 5, 300},
@@ -113,6 +118,7 @@ func Test03(t *testing.T) {
 			ListString: []string{"aaaa", "bbbb", "cccc", "dddd"},
 			DictStrInt: map[string]int{"key1": 1234, "key2": 5678, "key3": 9012},
 			TupleInt:   []int{1, 2, 3, 4},
+			Bool:       false,
 		},
 	}
 

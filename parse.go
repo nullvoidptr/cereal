@@ -202,7 +202,8 @@ func unmarshalType(rt reflect.Type, v interface{}) (reflect.Value, error) {
 	// Handle built in types
 
 	switch rt.Kind() {
-	// Integer slices
+
+	// Integer
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
 		// All integers parsed from cereal are ints
@@ -221,7 +222,7 @@ func unmarshalType(rt reflect.Type, v interface{}) (reflect.Value, error) {
 
 		newVal.SetInt(int64(intVal))
 
-	// String slices
+	// String
 	case reflect.String:
 
 		strVal, ok := v.(string)
@@ -232,7 +233,7 @@ func unmarshalType(rt reflect.Type, v interface{}) (reflect.Value, error) {
 		newVal = reflect.New(rt).Elem()
 		newVal.SetString(strVal)
 
-	// Float slices
+	// Float
 	case reflect.Float32, reflect.Float64:
 
 		var floatVal float64
@@ -249,12 +250,21 @@ func unmarshalType(rt reflect.Type, v interface{}) (reflect.Value, error) {
 		newVal = reflect.New(rt).Elem()
 		newVal.SetFloat(floatVal)
 
-	// interface{} slices
+	case reflect.Bool:
+		boolVal, ok := v.(bool)
+		if !ok {
+			return newVal, fmt.Errorf("illegal type '%s' for destination %s", reflect.TypeOf(v), rt)
+		}
+
+		newVal = reflect.New(rt).Elem()
+		newVal.SetBool(boolVal)
+
+	// interface{}
 	case reflect.Interface:
 		// TODO
 		fallthrough
 	default:
-		return newVal, fmt.Errorf("unsupported slice element type %s", rt)
+		return newVal, fmt.Errorf("unsupported element type %s", rt)
 	}
 
 	return newVal, nil

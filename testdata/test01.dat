@@ -2,10 +2,11 @@ cereal1
 2
 dict
 test01_class
-3
+4
 f-1234000000.0
 s11
-field_floats23
+field_floatb1s10
+field_bools23
 one two three four fives9
 field_stri12345
 s9
