@@ -1,3 +1,5 @@
+<img src="logo-512.png" width=200>
+
 # Cereal #
 
 Package cereal implements access to python cerealizer archives.
