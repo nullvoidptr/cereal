@@ -1,4 +1,4 @@
-<img src="logo-512.png" width=200>
+<img src="https://github.com/jamesbo13/cereal/raw/master/logo-512.png" width=200>
 
 # Cereal #
 
