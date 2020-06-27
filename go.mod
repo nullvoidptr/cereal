@@ -1,3 +1,3 @@
-module github.com/jamesbo13/cereal
+module jbowen.dev/cereal
 
 go 1.13
